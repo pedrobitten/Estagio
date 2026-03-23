@@ -220,7 +220,7 @@ def login_professor(request):
     matricula = input("Digite sua matricula: ")
 
     #ativa banco 
-    conn = sqlite3.connect('npj')
+    conn = sqlite3.connect('npj.db')
     cursor = conn.cursor()
 
     #Procura o login
@@ -255,37 +255,32 @@ def login_professor(request):
 #cadastrar no banco a conta de um professor novo
 def cadastro_login_professor(request):
 
-    nome = input("Digite seu nome")
-    login = input("Digite seu login")
-    senha = input("Digite sua senha")
-    matricula = input("Digite sua matricula")
-    cpf = input("Digite seu cpf")
-    id = random.randint(1, 100)
-    
-    while (id in ids_professores_utilizados):
-        id = random.randint(1, 100)
-    
-    ids_professores_utilizados.append(id)
+    nome = input("Digite seu nome: ")
+    login = input("Digite seu login: ")
+    senha = input("Digite sua senha: ")
+    matricula = input("Digite sua matricula: ")
+    cpf = input("Digite seu cpf: ")
 
     #Chama banco de dados
-    conn = sqlite3.connect('npj')
+
+    conn = sqlite3.connect('npj.db')
     cursor = conn.cursor()
 
     #Insere os dados do professor no banco
     cursor.execute(
 
         """
-        INSERT or IGNORE into professores (id, nome, login, senha, matricula, cpf)
-        VALUES (?,?,?,?,?,?)
+        INSERT into professores (nome, login, senha, matricula, cpf)
+        VALUES (?,?,?,?,?)
 
-        """, (id, nome, login, senha, matricula, cpf)
+        """, (nome, login, senha, matricula, cpf)
     )
     conn.commit()
 
     #Fecha banco de dados
     conn.close()
 
-    return
+    return ('213', 'Cadastro feito com sucesso')
 
 #Caso ele não tenha login
 def escolher_opcao_professor(request):
@@ -296,8 +291,7 @@ def escolher_opcao_professor(request):
     while (opcao.upper() != 'S' or opcao.upper() != 'N'):
 
         if opcao.upper() == 'N':
-            print('Indo para a tela de criar uma conta')
-            return ('POST', '/cadastro_professores')
+            return ('212', 'Indo para a tela de criar uma conta')
 
         elif opcao.upper() == 'S': 
             
@@ -316,7 +310,7 @@ rotas = {
     ('GET', '/login_professor') : login_professor,
     ('GET', '/opcao_login_professor'): escolher_opcao_professor,
     #('GET', '/login_administrador') : login_administrador, 
-    #('POST', '/cadastro_professores') : cadastro_login_professor,
+    ('POST', '/cadastro_professores') : cadastro_login_professor,
     #('POST', '/cadastro_administrador') : cadastro_login_administrador,
     #('POST', '/cadastro_caso') : cadastro_caso_sigiloso
 
@@ -330,46 +324,45 @@ cria_banco_de_dados()
 
 if __name__ == '__main__':
 
-    #Cria requisicao - Entra no sistema
-    requisicao_opcao_professor = despacha('GET', '/opcao_login_professor', {})
-    while (requisicao_opcao_professor[0] == '210'):
-        print(requisicao_opcao_professor[1])
-        requisicao_login_professor = despacha('GET', '/login_professor', {})
-        print(requisicao_login_professor)
-        while (requisicao_login_professor[0] != '200'):
+    sistema_ativo = 1
+    while (sistema_ativo == 1):
 
-            #Problemas no login
-            #1. Login inexistente - Criar um novo ou repetir o processo
-            #2. Senha incorreta - Fazer de novo o login (ok)
-            #3. Matricula incorreta - Fazer de novo o login (ok)
+        #Cria requisicao - Entra no sistema
+        requisicao_opcao_professor = despacha('GET', '/opcao_login_professor', {})
+        while (requisicao_opcao_professor[0] == '210'):
+            print(requisicao_opcao_professor[1])
+            requisicao_login_professor = despacha('GET', '/login_professor', {})
+            print(requisicao_login_professor)
+            while (requisicao_login_professor[0] != '200'):
 
-            if requisicao_login_professor[0] == '407': #Senha incorreta
+                #Problemas no login
+                #1. Login inexistente - Criar um novo ou repetir o processo
+                #2. Senha incorreta - Fazer de novo o login (ok)
+                #3. Matricula incorreta - Fazer de novo o login (ok)
 
-                print(requisicao_login_professor[1])
-                requisicao_login_professor = despacha('GET', '/login_professor', {})
-                
-            
-            elif requisicao_login_professor[1] == '411': #Matricula incorreta
+                if requisicao_login_professor[0] == '407': #Senha incorreta
 
-                print(requisicao_login_professor[1])
-                requisicao_login_professor = despacha('GET', '/login_professor', {})
-            
-            else: #Login Inexistente 
-
-                print(requisicao_login_professor[1])
-                requisicao_opcao_professor = despacha('GET', '/opcao_login_professor', {})
-                if requisicao_opcao_professor[0] == '210':
-                    break
+                    print(requisicao_login_professor[1])
+                    requisicao_login_professor = despacha('GET', '/login_professor', {})
                     
                 
+                elif requisicao_login_professor[1] == '411': #Matricula incorreta
 
+                    print(requisicao_login_professor[1])
+                    requisicao_login_professor = despacha('GET', '/login_professor', {})
+                
+                else: #Login Inexistente 
 
+                    print(requisicao_login_professor[1])
+                    requisicao_opcao_professor = despacha('GET', '/opcao_login_professor', {})
+                    break
+        
+        if (requisicao_opcao_professor[0] == '212'):
 
+            requisicao_cadastro_professor = despacha('POST', '/cadastro_professores', {})
+            print(requisicao_cadastro_professor[1])
+            sistema_ativo = 0
 
-            
-    print(requisicao_login_professor[1])
     print('Ver casos sigilosos')
 
         
-
-
