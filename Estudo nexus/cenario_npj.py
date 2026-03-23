@@ -1,5 +1,5 @@
 import sqlite3
-import random
+
 
 professores = [
     {
@@ -111,7 +111,7 @@ ids_professores_utilizados = [1, 2, 3, 4, 5]
 def cria_banco_de_dados():
 
     
-    conn = sqlite3.connect('npj.db')
+    conn = sqlite3.connect('/workspaces/Estagio/Estudo nexus/npj.db')
     cursor = conn.cursor()
 
     cursor.execute("DROP TABLE IF EXISTS professores")
@@ -220,7 +220,7 @@ def login_professor(request):
     matricula = input("Digite sua matricula: ")
 
     #ativa banco 
-    conn = sqlite3.connect('npj.db')
+    conn = sqlite3.connect('/workspaces/Estagio/Estudo nexus/npj.db')
     cursor = conn.cursor()
 
     #Procura o login
@@ -263,14 +263,14 @@ def cadastro_login_professor(request):
 
     #Chama banco de dados
 
-    conn = sqlite3.connect('npj.db')
+    conn = sqlite3.connect('/workspaces/Estagio/Estudo nexus/npj.db')
     cursor = conn.cursor()
 
     #Insere os dados do professor no banco
     cursor.execute(
 
         """
-        INSERT into professores (nome, login, senha, matricula, cpf)
+        INSERT or IGNORE into professores (nome, login, senha, matricula, cpf)
         VALUES (?,?,?,?,?)
 
         """, (nome, login, senha, matricula, cpf)
