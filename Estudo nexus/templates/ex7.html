@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tela de usuario</title>
+</head>
+<body>
+    
+    <h1>Tela de usuario</h1>
+
+    <table>
+
+        <thead>
+
+            
+
+
+        </thead>
+
+        <tbody>
+
+            {% for dado in dados %}
+                <tr>
+                    <td>{{ dado[0] }}</td>
+                    <td>{{ dado[1] }}</td>
+                    <td>{{ dado[2] }}</td>
+                    <td>{{ dado[3] }}</td>
+                </tr>
+            {% endfor %}
+
+
+        </tbody>
+
+        
+    </table>
+
+</body>
+</html>
