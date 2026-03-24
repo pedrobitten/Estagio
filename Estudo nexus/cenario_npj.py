@@ -329,7 +329,36 @@ def escolher_opcao_professor(request):
             print('Digite entre S ou N')
             opcao = input('Digite S para criar uma conta ou N para ir a tela de login: ')
 
+#Mostra quais opções ele pode usar dentro do sistema
+def escolher_opcao_professor_sistema(requisicao):
+
+    print("Escolha dentre as opções")
+    print("1-Ver casos sigilosos\n2-Cadastrar casos sigilosos\n3-Sair do sistema")
+    opcao_escolhida = input()
+
+    while (opcao_escolhida not in [1, 2, 3]):
+
+        print("Opção errada! Selecione uma opção correta")
+        print("1-Ver casos sigilosos\n2-Cadastrar casos sigilosos\n3-Sair do sistema")
+        opcao_escolhida = input()
+
+    if opcao_escolhida == 1:
+
+        return ('253', 'Vendo casos sigilosos...')
     
+    elif opcao_escolhida == 2:
+
+        return ('254', 'Cadastro de casos sigilosos')
+    
+    else:
+
+        return ('255', 'Saindo do sistema...')
+
+        
+
+
+
+
     
 
 rotas = {
@@ -340,6 +369,7 @@ rotas = {
     ('POST', '/cadastro_professores') : cadastro_login_professor,
     #('POST', '/cadastro_administrador') : cadastro_login_administrador,
     #('POST', '/cadastro_caso') : cadastro_caso_sigiloso
+    ('POST', '/opcao_sistema_professor') : escolher_opcao_professor_sistema
 
 }
 
@@ -393,8 +423,10 @@ if __name__ == '__main__':
             requisicao_cadastro_professor = despacha('POST', '/cadastro_professores', {})
             print(requisicao_cadastro_professor[1])
             
+        #Requisição para entrar nas opções do sistema
 
-        while ()
+        #Entra nas opções do sistema - Ver casos sigilosos, cadastrar caso sigiloso, etc
+        while (requi)
 
     print('Ver casos sigilosos')
 
