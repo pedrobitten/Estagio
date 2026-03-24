@@ -111,7 +111,7 @@ ids_professores_utilizados = [1, 2, 3, 4, 5]
 def cria_banco_de_dados():
 
     
-    conn = sqlite3.connect('/workspaces/Estagio/Estudo nexus/npj.db')
+    conn = sqlite3.connect('npj.db')
     cursor = conn.cursor()
 
     cursor.execute("DROP TABLE IF EXISTS professores")
@@ -207,6 +207,33 @@ def cria_banco_de_dados():
 
     return 
 
+#Função focada apenas em dados (Camada de Acesso a dados)
+def buscar_professor_por_login(login):
+
+    conn = sqlite3.connect('npj.db')
+    cursor = conn.cursor()
+    cursor.execute(
+        
+        """
+        SELECT id, login, senha, matricula
+        FROM professores WHERE login = ?
+
+        """, (login, )
+    )
+    resultado = cursor.fetchone()
+
+    conn.close()
+
+    return resultado
+
+# Função focada apenas em APRESENTAÇÃO (Renderização)
+def renderizar_perfil(professor):
+
+    print(f"---Perfil do Professor---\nNome: {professor['nome']}\nMatrícula: {professor['matricula']}")
+
+    return 
+
+
 def despacha(metodo, rota, request):
 
     handler = rotas.get((metodo, rota))
@@ -220,7 +247,7 @@ def login_professor(request):
     matricula = input("Digite sua matricula: ")
 
     #ativa banco 
-    conn = sqlite3.connect('/workspaces/Estagio/Estudo nexus/npj.db')
+    conn = sqlite3.connect('npj.db')
     cursor = conn.cursor()
 
     #Procura o login
@@ -263,7 +290,7 @@ def cadastro_login_professor(request):
 
     #Chama banco de dados
 
-    conn = sqlite3.connect('/workspaces/Estagio/Estudo nexus/npj.db')
+    conn = sqlite3.connect('npj.db')
     cursor = conn.cursor()
 
     #Insere os dados do professor no banco
@@ -316,23 +343,26 @@ rotas = {
 
 }
 
-# 0 - Desativa o sistema (sai)
-# 1 - Login Professor
-# 2 - Cadastro do professor
 
 cria_banco_de_dados()
 
 if __name__ == '__main__':
 
-    sistema_ativo = 1
+    sistema_ativo = 1 #Sistema está operando
     while (sistema_ativo == 1):
 
         #Cria requisicao - Entra no sistema
         requisicao_opcao_professor = despacha('GET', '/opcao_login_professor', {})
         while (requisicao_opcao_professor[0] == '210'):
+
             print(requisicao_opcao_professor[1])
             requisicao_login_professor = despacha('GET', '/login_professor', {})
             print(requisicao_login_professor)
+
+            if requisicao_login_professor[0] == '200': #Caso o login seja bem sucedido
+
+                break
+
             while (requisicao_login_professor[0] != '200'):
 
                 #Problemas no login
@@ -357,11 +387,14 @@ if __name__ == '__main__':
                     requisicao_opcao_professor = despacha('GET', '/opcao_login_professor', {})
                     break
         
-        if (requisicao_opcao_professor[0] == '212'):
+        #Vai cadastrar no sistema
+        if (requisicao_opcao_professor[0] == '212'): 
 
             requisicao_cadastro_professor = despacha('POST', '/cadastro_professores', {})
             print(requisicao_cadastro_professor[1])
-            sistema_ativo = 0
+            
+
+        while ()
 
     print('Ver casos sigilosos')
 
