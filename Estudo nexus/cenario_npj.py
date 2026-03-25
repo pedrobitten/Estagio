@@ -226,13 +226,44 @@ def buscar_professor_por_login(login):
 
     return resultado
 
+#Função focada apenas em dados (Camada de Acesso a dados)
+def buscar_caso_por_id(id_professor):
+
+    conn = sqlite3.connect('npj.db')
+    cursor = conn.cursor()
+    cursor.execute(
+        
+        """
+        SELECT titulo_identificador, conteudo_sigiloso, nome_cliente, data_abertura, professor_id
+        FROM dados_sigilosos WHERE professor_id = ?
+
+        """, (id_professor, )
+    )
+    resultado = cursor.fetchall()
+
+    conn.close()
+
+    return resultado
+
 # Função focada apenas em APRESENTAÇÃO (Renderização)
 def renderizar_perfil(professor):
 
-    print(f"---Perfil do Professor---\nNome: {professor['nome']}\nMatrícula: {professor['matricula']}")
+    print(f"---Perfil do Professor---\nNome: {professor[1]}\nMatrícula: {professor[4]}")
 
     return 
 
+# Função focada apenas em APRESENTAÇÃO (Renderização)
+def renderizar_casos(casos):
+
+    print('---Informações do Professor---\n')
+
+    for caso in casos:
+
+        print(f"Titulo do Identificador: {caso[0]}\nConteudo Sigiloso: {caso[1]}\nNome Cliente: {caso[2]}\nData de abertura: {caso[3]}")
+
+    print("\n")
+
+    return 
 
 def despacha(metodo, rota, request):
 
@@ -254,7 +285,7 @@ def login_professor(request):
     cursor.execute(
 
         """
-        SELECT login, senha, matricula from professores
+        SELECT id, nome, login, senha, matricula from professores
         WHERE login = ? 
 
         """, (login, )
@@ -267,17 +298,17 @@ def login_professor(request):
 
         return ('404', 'Login Inexistente')
     
-    if conta_selecionada[1] != senha:
+    if conta_selecionada[3] != senha:
 
         return ('407', 'Senha incorreta')
     
-    if conta_selecionada[2] != matricula:
+    if conta_selecionada[4] != matricula:
 
         return ('411', 'Matricula incorreta')
     
     conn.close()
     
-    return ('200', 'Login feito com sucesso')
+    return ('200', 'Login feito com sucesso', conta_selecionada)
 
 #cadastrar no banco a conta de um professor novo
 def cadastro_login_professor(request):
@@ -334,7 +365,8 @@ def escolher_opcao_professor_sistema(requisicao):
 
     print("Escolha dentre as opções")
     print("1-Ver casos sigilosos\n2-Cadastrar casos sigilosos\n3-Sair do sistema")
-    opcao_escolhida = input()
+    opcao_escolhida = int(input())
+    print(opcao_escolhida)
 
     while (opcao_escolhida not in [1, 2, 3]):
 
@@ -353,13 +385,44 @@ def escolher_opcao_professor_sistema(requisicao):
     else:
 
         return ('255', 'Saindo do sistema...')
-
-        
-
-
-
-
     
+#Procura pelo banco o casos daquele professor
+def ver_casos_professor(request):
+
+    dados_professor = buscar_professor_por_login(request.get('login'))
+
+    informacoes_do_caso = buscar_caso_por_id(dados_professor[0])
+    print(informacoes_do_caso)
+
+    if informacoes_do_caso == None:
+
+        return ('467', 'O professor não apresenta casos')
+    
+    return ('267', 'Vendo casos sigilosos', informacoes_do_caso)
+
+#Pede as informacoes para o professor do caso que sera cadastrado
+def cadastro_caso_sigiloso(request):
+
+    titulo = input("Digite o titulo do identificador: ")
+    conteudo = input("Digite o conteudo do caso: ")
+    nome_do_cliente = input("Digite o nome do cliente: ")
+    data = input("Digite a data da abertura (Modelo: aaaa-mm-dd hh:mm:ss): ")
+
+    #Ativa o banco
+    conn = sqlite3.connect('npj.db')
+    cursor = conn.cursor()
+
+    #Insere o dado
+    cursor.execute(
+        """
+        INSERT or IGNORE into dados_sigilosos (titulo_identificador, conteudo_sigiloso, nome_cliente, data_abertura, professor_id)
+        VALUES (?,?,?,?,?)
+
+        """, (titulo, conteudo, nome_do_cliente, data, request.get('id'))
+    )
+    conn.commit()
+
+    return ('275', 'Cadastro feito com sucesso')
 
 rotas = {
 
@@ -368,8 +431,9 @@ rotas = {
     #('GET', '/login_administrador') : login_administrador, 
     ('POST', '/cadastro_professores') : cadastro_login_professor,
     #('POST', '/cadastro_administrador') : cadastro_login_administrador,
-    #('POST', '/cadastro_caso') : cadastro_caso_sigiloso
-    ('POST', '/opcao_sistema_professor') : escolher_opcao_professor_sistema
+    ('POST', '/cadastro_caso') : cadastro_caso_sigiloso,
+    ('GET', '/opcao_sistema_professor') : escolher_opcao_professor_sistema,
+    ('GET', '/ver_casos') : ver_casos_professor
 
 }
 
@@ -390,7 +454,8 @@ if __name__ == '__main__':
             print(requisicao_login_professor)
 
             if requisicao_login_professor[0] == '200': #Caso o login seja bem sucedido
-
+                dados_professor = requisicao_login_professor[2]
+                renderizar_perfil(dados_professor)
                 break
 
             while (requisicao_login_professor[0] != '200'):
@@ -423,11 +488,50 @@ if __name__ == '__main__':
             requisicao_cadastro_professor = despacha('POST', '/cadastro_professores', {})
             print(requisicao_cadastro_professor[1])
             
-        #Requisição para entrar nas opções do sistema
+        
 
+        requisicao_opcao_sistema_professor = '1'
+        
         #Entra nas opções do sistema - Ver casos sigilosos, cadastrar caso sigiloso, etc
-        while (requi)
+        while (requisicao_opcao_sistema_professor[0] != '255'):
+            
+            #Requisição para entrar nas opções do sistema
+            requisicao_opcao_sistema_professor = despacha('GET', '/opcao_sistema_professor', {})
+            print(requisicao_opcao_sistema_professor[1])
 
-    print('Ver casos sigilosos')
+            #Ver casos sigilosos
+            if requisicao_opcao_sistema_professor[0] == '253':
+
+                requisicao_ver_casos = despacha('GET', '/ver_casos', {'nome' : dados_professor[1],
+                                                                    'login': dados_professor[2],
+                                                                    'matricula' : dados_professor[4]})
+                
+                if requisicao_ver_casos[0] == '467':
+
+                    print(requisicao_ver_casos[1])
+                    #Possibilidade de cadastrar no sistema
+                
+                else:
+
+                    renderizar_casos(requisicao_ver_casos[2])
+
+            #Vai cadastrar o caso no sistema
+            elif requisicao_opcao_sistema_professor[0] == '254':
+
+                requisicao_cadastrar_caso_sistema = despacha('POST', '/cadastro_caso', {'id' : dados_professor[0]})
+                print(requisicao_cadastrar_caso_sistema[1])
+
+            else:
+
+                sistema_ativo = 0
+
+            
+
+
+        
+        
+       
+
+
 
         
